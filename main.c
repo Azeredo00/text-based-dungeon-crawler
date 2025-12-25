@@ -27,11 +27,11 @@ int main(){
     srand(time(NULL));
     int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated;
 
-    //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
-    sheets **skeletons = malloc(skeleton_quantity * sizeof(sheets *));
-
-    skeleton_quantity = 3;
+    skeleton_quantity = 30;
     skeletons_defeated = 0;
+
+    //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
+    sheets **skeletons = malloc(skeleton_quantity * sizeof(sheets *));    
 
     for(id=0; id<skeleton_quantity; id++){
         
@@ -78,7 +78,6 @@ int main(){
             }else{
                 printf("Skeleton %d is already defeated\n", id+1);
             }
-            usleep(5*1000*1000);
         }
     }
     //only when the combat ends, free the memory allocated
