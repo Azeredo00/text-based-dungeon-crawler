@@ -25,12 +25,13 @@ typedef struct{
 int main(){
     sheets player={20, 15, 1, 8, 3, 15, 14, 13, 12, 10, 8};
     srand(time(NULL));
-    int skeleton_quantity, id, roll_counter, damage_dealt;
-
-    skeleton_quantity = 3;
+    int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated;
 
     //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
     sheets **skeletons = malloc(skeleton_quantity * sizeof(sheets *));
+
+    skeleton_quantity = 3;
+    skeletons_defeated = 0;
 
     for(id=0; id<skeleton_quantity; id++){
         
@@ -49,7 +50,8 @@ int main(){
         skeletons[id]->wisdom = rand()%20+1;
         skeletons[id]->charisma = rand()%20+1;
     }
-    while( player.health_points>0 && skeleton_quantity>0 ){
+
+    while( player.health_points>0 && skeletons_defeated<skeleton_quantity ){
         printf("\n-- New Turn --\n");
         printf("Player HP: %d\n", player.health_points);
         for(id=0; id<skeleton_quantity; id++){ //player attacks each skeleton in the room
@@ -68,14 +70,19 @@ int main(){
 
                 if(damage_dealt >= skeletons[id]->health_points){ //if the skeleton is defeated
                     skeletons[id]->health_points = 0;
+                    skeletons_defeated++;
                     printf("Skeleton %d defeated!\n", id+1);
                 }else{
                     skeletons[id]->health_points -= damage_dealt;
                 }
+            }else{
+                printf("Skeleton %d is already defeated\n", id+1);
             }
+            usleep(5*1000*1000);
         }
     }
     //only when the combat ends, free the memory allocated
+    printf("Combat ended with %d Skeletons defeated\n", skeletons_defeated);
     for(id=0; id<skeleton_quantity; id++){
         free(skeletons[id]);
     }
