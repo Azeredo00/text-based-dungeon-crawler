@@ -43,7 +43,7 @@ int main(){
     for(id=0; id<3; id++){
         
         //this line allocates memory for each struct 'sheets' and assigns the pointer to the array
-        zombies[id] = malloc(sizeof(sheets));
+        enemies[id] = malloc(sizeof(sheets));
 
         sheets zombie = {rand()%8+1 + rand()%8+1 + rand()%8+1 + 9, 8, 1, 6, 1, 13, 6, 16, 3, 6, 5};
         *enemies[id] = zombie;
@@ -52,10 +52,10 @@ int main(){
     while( player.health_points>0 && enemies_defeated<enemies_quantity ){
         printf("\n-- New Turn --\n");
         printf("Player HP: %d\n", player.health_points);
-        for(id=0; id<skeleton_quantity; id++){ //player attacks each skeleton in the room
+        for(id=0; id<3; id++){ //player attacks each skeleton in the room
             damage_dealt = 0; //each new battle, a new damage value is dealt
-            printf("Skeleton %d HP: %d\n", id+1, skeletons[id]->health_points);
-            if(skeletons[id]->health_points > 0){ //only attack if the skeleton is alive
+            printf("Skeleton %d HP: %d\n", id+1, enemies[id]->health_points);
+            if(enemies[id]->health_points > 0){ //only attack if the skeleton is alive
 
                 for(roll_counter=1; roll_counter<=player.damage_dice_quantity; roll_counter++){
                     damage_dealt += rand()%player.damage_dice+1;
@@ -66,12 +66,12 @@ int main(){
 
                 printf("Player deals %d damage to Skeleton %d\n", damage_dealt, id+1);
 
-                if(damage_dealt >= skeletons[id]->health_points){ //if the skeleton is defeated
-                    skeletons[id]->health_points = 0;
-                    skeletons_defeated++;
+                if(damage_dealt >= enemies[id]->health_points){ //if the skeleton is defeated
+                    enemies[id]->health_points = 0;
+                    enemies_defeated++;
                     printf("Skeleton %d defeated!\n", id+1);
                 }else{
-                    skeletons[id]->health_points -= damage_dealt;
+                    enemies[id]->health_points -= damage_dealt;
                 }
             }else{
                 printf("Skeleton %d is already defeated\n", id+1);
@@ -79,11 +79,11 @@ int main(){
         }
     }
     //only when the combat ends, free the memory allocated
-    printf("Combat ended with %d Skeletons defeated\n", skeletons_defeated);
-    for(id=0; id<skeleton_quantity; id++){
-        free(skeletons[id]);
+    printf("Combat ended with %d Enemies defeated\n", enemies_defeated);
+    for(id=0; id<3; id++){
+        free(enemies[id]);
     }
-    free(skeletons);
-    
+    free(enemies);
+
     return 0;
 }
