@@ -25,55 +25,31 @@ typedef struct{
 int main(){
     sheets player={20, 15, 1, 8, 3, 15, 14, 13, 12, 10, 8};
     srand(time(NULL));
-    int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated, zombie_quantity;
+    int enemies_quantity, id, roll_counter, damage_dealt, enemies_defeated;
 
-    skeleton_quantity = 3;
-    skeletons_defeated = 0;
+    enemies_quantity = 3;
+    enemies_defeated = 0;
 
     //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
-    sheets **skeletons = malloc(skeleton_quantity * sizeof(sheets *));    
+    sheets **enemies = malloc(enemies_quantity * sizeof(sheets *));    
 
-    for(id=0; id<skeleton_quantity; id++){
-        
+    for(id=0; id<3; id++){        
         //this line allocates memory for each struct 'sheets' and assigns the pointer to the array
-        skeletons[id] = malloc(sizeof(sheets));
+        enemies[id] = malloc(sizeof(sheets));
         
-        skeletons[id]->health_points = rand()%8+1 + rand()%8+1 + 4; //2d8 roll + 4
-        skeletons[id]->armor_class = 13;
-        skeletons[id]->damage_dice_quantity = 1;
-        skeletons[id]->damage_dice = 6;
-        skeletons[id]->damage_bonus = 2;
-        skeletons[id]->strength = rand()%20+1; //random value between 1 and 20
-        skeletons[id]->dexterity = rand()%20+1;
-        skeletons[id]->constitution = rand()%20+1;
-        skeletons[id]->inteligence = rand()%20+1;
-        skeletons[id]->wisdom = rand()%20+1;
-        skeletons[id]->charisma = rand()%20+1;
+        sheets skeleton = {rand()%8+1 + rand()%8+1 + 4, 13, 1, 6, 2, 10, 14, 15, 6, 8, 5};
+        *enemies[id] = skeleton;
     }
-
-    zombie_quantity = 3;
-
-    sheets **zombies = malloc(zombie_quantity * sizeof(sheets *));   
-
-    for(id=0; id<zombie_quantity; id++){
+    for(id=0; id<3; id++){
         
         //this line allocates memory for each struct 'sheets' and assigns the pointer to the array
         zombies[id] = malloc(sizeof(sheets));
-        
-        zombies[id]->health_points = rand()%8+1 + rand()%8+1 + rand()%8+1 + 9; //3d8 roll + 9
-        zombies[id]->armor_class = 8;
-        zombies[id]->damage_dice_quantity = 1;
-        zombies[id]->damage_dice = 6;
-        zombies[id]->damage_bonus = 1;
-        zombies[id]->strength = rand()%20+1; //random value between 1 and 20
-        zombies[id]->dexterity = rand()%20+1;
-        zombies[id]->constitution = rand()%20+1;
-        zombies[id]->inteligence = rand()%20+1;
-        zombies[id]->wisdom = rand()%20+1;
-        zombies[id]->charisma = rand()%20+1;
+
+        sheets zombie = {rand()%8+1 + rand()%8+1 + rand()%8+1 + 9, 8, 1, 6, 1, 13, 6, 16, 3, 6, 5};
+        *enemies[id] = zombie;
     }
 
-    while( player.health_points>0 && skeletons_defeated<skeleton_quantity ){
+    while( player.health_points>0 && enemies_defeated<enemies_quantity ){
         printf("\n-- New Turn --\n");
         printf("Player HP: %d\n", player.health_points);
         for(id=0; id<skeleton_quantity; id++){ //player attacks each skeleton in the room
