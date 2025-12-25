@@ -25,7 +25,7 @@ typedef struct{
 int main(){
     sheets player={20, 15, 1, 8, 3, 15, 14, 13, 12, 10, 8};
     srand(time(NULL));
-    int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated;
+    int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated, zombie_quantity;
 
     skeleton_quantity = 3;
     skeletons_defeated = 0;
@@ -49,6 +49,28 @@ int main(){
         skeletons[id]->inteligence = rand()%20+1;
         skeletons[id]->wisdom = rand()%20+1;
         skeletons[id]->charisma = rand()%20+1;
+    }
+
+    zombie_quantity = 3;
+
+    sheets **zombies = malloc(zombie_quantity * sizeof(sheets *));   
+
+    for(id=0; id<zombie_quantity; id++){
+        
+        //this line allocates memory for each struct 'sheets' and assigns the pointer to the array
+        zombies[id] = malloc(sizeof(sheets));
+        
+        zombies[id]->health_points = rand()%8+1 + rand()%8+1 + rand()%8+1 + 9; //3d8 roll + 9
+        zombies[id]->armor_class = 8;
+        zombies[id]->damage_dice_quantity = 1;
+        zombies[id]->damage_dice = 6;
+        zombies[id]->damage_bonus = 1;
+        zombies[id]->strength = rand()%20+1; //random value between 1 and 20
+        zombies[id]->dexterity = rand()%20+1;
+        zombies[id]->constitution = rand()%20+1;
+        zombies[id]->inteligence = rand()%20+1;
+        zombies[id]->wisdom = rand()%20+1;
+        zombies[id]->charisma = rand()%20+1;
     }
 
     while( player.health_points>0 && skeletons_defeated<skeleton_quantity ){
