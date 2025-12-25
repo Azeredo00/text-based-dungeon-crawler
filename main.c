@@ -27,7 +27,7 @@ int main(){
     srand(time(NULL));
     int skeleton_quantity, id, roll_counter, damage_dealt;
 
-    skeleton_quantity = 1;
+    skeleton_quantity = 3;
 
     //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
     sheets **skeletons = malloc(skeleton_quantity * sizeof(sheets *));
@@ -51,23 +51,27 @@ int main(){
     }
     while( player.health_points>0 && skeleton_quantity>0 ){
         printf("\n-- New Turn --\n");
-        for(id=0; id<skeleton_quantity; id++){
-            damage_dealt = 0; //each new turn, is a new damage dealt value
-            printf("Player HP: %d\n", player.health_points);
+        printf("Player HP: %d\n", player.health_points);
+        for(id=0; id<skeleton_quantity; id++){ //player attacks each skeleton in the room
+            damage_dealt = 0; //each new battle, a new damage value is dealt
             printf("Skeleton %d HP: %d\n", id+1, skeletons[id]->health_points);
-            for(roll_counter=1; roll_counter<=player.damage_dice_quantity; roll_counter++){
-                damage_dealt += rand()%player.damage_dice+1;
-                if(roll_counter == player.damage_dice_quantity){
-                    damage_dealt += player.damage_bonus;
+            if(skeletons[id]->health_points > 0){ //only attack if the skeleton is alive
+
+                for(roll_counter=1; roll_counter<=player.damage_dice_quantity; roll_counter++){
+                    damage_dealt += rand()%player.damage_dice+1;
+                    if(roll_counter == player.damage_dice_quantity){
+                        damage_dealt += player.damage_bonus;
+                    }
                 }
-            }
-            printf("Player deals %d damage to Skeleton %d\n", damage_dealt, id+1);
-            if(damage_dealt >= skeletons[id]->health_points){ //if the skeleton is defeated
-                skeletons[id]->health_points = 0;
-                printf("Skeleton %d defeated!\n", id+1);
-                skeleton_quantity--;
-            }else{
-                skeletons[id]->health_points -= damage_dealt;
+
+                printf("Player deals %d damage to Skeleton %d\n", damage_dealt, id+1);
+
+                if(damage_dealt >= skeletons[id]->health_points){ //if the skeleton is defeated
+                    skeletons[id]->health_points = 0;
+                    printf("Skeleton %d defeated!\n", id+1);
+                }else{
+                    skeletons[id]->health_points -= damage_dealt;
+                }
             }
         }
     }
