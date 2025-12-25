@@ -27,7 +27,7 @@ int main(){
     srand(time(NULL));
     int skeleton_quantity, id, roll_counter, damage_dealt, skeletons_defeated;
 
-    skeleton_quantity = 30;
+    skeleton_quantity = 3;
     skeletons_defeated = 0;
 
     //this line creates a pointer to pointers, an array of pointers, pointing to a memory space that holds a 'sheets' struct
