@@ -26,12 +26,35 @@ typedef struct{
     int charisma;
 }Sheet;
 
+//the health points value here does not matter, because they will be calculated at the start of the battle
+//because they are random, and random values can not be assigned at compile time
 Sheet player={3, 10, 6, 1, 15, 2, 6, 3, 16, 12, 14, 10, 8}; //player character sheet
-Sheet monsters[3]={ 
+Sheet monster_templates[3]={ 
     {2, 8, 4, 0, 13, 1, 6, 2, 10, 14, 15, 6, 8, 5}, //skeleton
     {3, 8, 9, 0, 8, 1, 6, 1, 13, 6, 16, 3, 6, 5}, //zombie
     {2, 6, 0, 0, 15, 1, 6, 2, 8, 14, 10, 10, 8, 8} //goblin
 };
+
+typedef struct{
+    int strength_bonus;
+    int dexterity_bonus;
+    int constitution_bonus;
+    int inteligence_bonus;
+    int wisdom_bonus;
+    int charisma_bonus;
+}Race;
+
+Race race_templates[3]={ //0 = human, 1 = elf, 2 = dwarf
+    {1, 1, 1, 1, 1, 1}, //human
+    {0, 2, 0, 0, 0, 0}, //elf
+    {0, 0, 2, 0, 0, 0}  //dwarf
+};
+
+typedef struct{
+    int health_dice;
+    int health_points_on_level_1;
+
+}Class;
 
 //created a battle function that takes, as a parameter, a pointer to a Sheet structs
 void battle(){
@@ -99,7 +122,10 @@ void battle(){
 }
 
 int main(){
+    int X;
     srand(time(NULL));
+    //character creation
+    int roll_counter;
     battle();
     return 0;
 }
