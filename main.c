@@ -10,14 +10,15 @@ typedef struct{
 }Room;
 
 typedef struct{
-    int health_dice_quantity;
-    int health_dice;
-    int health_bonus;
+    Class Class;
     int health_points;
     int armor_class;
+    /*
     int damage_dice_quantity;
     int damage_dice;
     int damage_bonus;
+    */
+    int damage;
     int strength;
     int dexterity;
     int constitution;
@@ -28,13 +29,12 @@ typedef struct{
 
 //the health points value here does not matter, because they will be calculated at the start of the battle
 //because they are random, and random values can not be assigned at compile time
-Sheet player={3, 10, 6, 1, 15, 2, 6, 3, 16, 12, 14, 10, 8}; //player character sheet
-Sheet monster_templates[3]={ 
+Sheet players[4]; //array of 4 players
+Sheet monsters[3]={ 
     {2, 8, 4, 0, 13, 1, 6, 2, 10, 14, 15, 6, 8, 5}, //skeleton
     {3, 8, 9, 0, 8, 1, 6, 1, 13, 6, 16, 3, 6, 5}, //zombie
     {2, 6, 0, 0, 15, 1, 6, 2, 8, 14, 10, 10, 8, 8} //goblin
 };
-
 typedef struct{
     int strength_bonus;
     int dexterity_bonus;
@@ -44,18 +44,24 @@ typedef struct{
     int charisma_bonus;
 }Race;
 
-Race race_templates[3]={ //0 = human, 1 = elf, 2 = dwarf
+Race races[3]={ //0 = human, 1 = elf, 2 = dwarf
     {1, 1, 1, 1, 1, 1}, //human
     {0, 2, 0, 0, 0, 0}, //elf
     {0, 0, 2, 0, 0, 0}  //dwarf
 };
 
 typedef struct{
+    int health_dice_quantity;
     int health_dice;
-    int health_points_on_level_1;
-
+    int health_bonus;
 }Class;
 
+Class classes[3]={ //0 = warrior, 1 = rogue, 2 = mage
+    {1, 12, 12}, //warrior
+    {1, 8, 8}, //rogue
+    {1, 6, 6},  //mage
+    {0, 0, 0}  //enemy
+};
 //created a battle function that takes, as a parameter, a pointer to a Sheet structs
 void battle(){
 
@@ -72,7 +78,7 @@ void battle(){
     for(id=0; id<enemies_quantity; id++){
 
         enemies[id] = malloc(sizeof(Sheet)); //allocates memory for each struct 'Sheet' and assigns the pointer to the array
-        *enemies[id] = monsters[type_of_enemy]; //copies the monster stats to the allocated memory
+        *enemies[id] = monster_templates[type_of_enemy]; //copies the monster stats to the allocated memory
 
         for(roll_counter=1; roll_counter<=enemies[id]->health_dice_quantity; roll_counter++){ //total health points calculation
             enemies[id]->health_points += rand()%enemies[id]->health_dice+1;
@@ -122,9 +128,50 @@ void battle(){
 }
 
 int main(){
-    int X;
     srand(time(NULL));
+    int selected_class, health_given, armor_class_given, id, attributes[6], choice;
+
     //character creation
+    for(id=0; id<4; id++){
+        attributes[6]={rand()%20+1, rand()%20+1, rand()%20+1, rand()%20+1, rand()%20+1, rand()%20+1}; //ability scores rolls
+        printf("Attributes rolled: ");
+        for(choice=0; choice<6; choice++){
+            printf("%d", attributes[choice]);
+            if(choice<5){
+                printf(", ");
+            }else{
+                printf("\n");
+            }
+        }
+        printf("Distribute attributes for player %d:\n", id+1);
+        for(id=0; id<6; id++){
+            switch(choice){
+                case 0:
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    break;
+                case 4:
+                    break;
+                case 5:
+                    break;
+            }
+        }
+        selected_class=rand()%3; //except the enemy class
+        health_given = rand()%classes[selected_class].health_dice + 1 + classes[selected_class].health_bonus; //initial health points roll
+        armor_class_given = 10 + players[id].dexterity; //initial armor class calculation
+        players[id]={
+            classes[selected_class],
+            health_given,
+            0,
+            0,
+            0,
+            0,
+            0, 0, 0, 0, 0, 0}; //attributes
+    };
     int roll_counter;
     battle();
     return 0;
