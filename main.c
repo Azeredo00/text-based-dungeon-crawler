@@ -202,8 +202,8 @@ void party_creator(){
                         break;
                 }
             }
-        }-
-        players[id].basic_stats.health_points = rand()%(players[id].class->health_dice + 1) + players[id].class->health_bonus; //initial health points roll
+        }
+        players[id].basic_stats.health_points = (rand() % (players[id].class->health_dice + 1)) + players[id].class->health_bonus; //initial health points roll
         players[id].basic_stats.armor_class = 10 + players[id].basic_stats.dexterity; //initial armor class calculation
         players[id].basic_stats.damage = 0;
         for(roll_counter=1; roll_counter<=players[id].basic_stats.weapon.damage_dice_quantity; roll_counter++){ //damage calculation
