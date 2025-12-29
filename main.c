@@ -4,12 +4,20 @@
 
 int party_size;
 
+enum directions_enum {NORTH, EAST, SOUTH, WEST, DIRECTIONS_QUANTITY};
 typedef struct{
-    int adjacent_rooms[4]; //array positions are, respectively: north, east, south, west
+    int adjacent_rooms[DIRECTIONS_QUANTITY]; //array positions are, respectively: north, east, south, west
     int enemies_inside;
     int money_pile;
     int has_enemy;
 }Room;
+
+enum character_types_enum {PLAYER, ENEMY, CHARACTER_TYPES_QUANTITY};
+typedef struct{ //this struct will be an array arranged by order of iniciative rolled
+    enum character_types_enum character_type; //is it a player or a monster?
+    int character_index; //inside their own struct array, which index are theirs?
+    int roll;
+}Iniciative;
 
 typedef struct{
     int damage_dice_quantity;
@@ -17,8 +25,9 @@ typedef struct{
     int damage_bonus;
 }Weapon;
 
-enum weapons_enum {SWORD, BOW, STAFF, WEAPONS_QUANTITY};
+enum weapons_enum {TO_BE_SELECTED, SWORD, BOW, STAFF, WEAPONS_QUANTITY};
 Weapon weapons[WEAPONS_QUANTITY]={
+    [TO_BE_SELECTED] = {0, 0, 0},
     [SWORD] = {1, 8, 2},
     [BOW] = {1, 6, 1},
     [STAFF] = {1, 4, 3}
@@ -65,7 +74,7 @@ typedef struct{
     int wisdom;
     int charisma;
 }Base;
-//67
+
 typedef struct{
     //players do not need to have a copy of the class and race67
     //since all the players of the same class and race would share the same stats
@@ -87,6 +96,15 @@ typedef struct{
 //because they are random, and random values can not be assigned at compile time
 enum monsters_enum {SKELETON, ZOMBIE, GOBLIN, MONSTERS_QUANTITY};
 Monster monsters[MONSTERS_QUANTITY]={
+    [SKELETON] = {
+            {0, 13, TO_BE_SELECTED, 0, 10, 14, 12, 6, 8, 5},
+        2, 6, 0},
+    [ZOMBIE] = {
+            {0, 8, TO_BE_SELECTED, 0, 16, 6, 16, 3, 6, 5},
+        2, 8, 0},
+    [GOBLIN] = {
+            {0, 15, TO_BE_SELECTED, 0, 8, 14, 10, 10, 8, 8},
+        1, 6, 0}
 };
 
 int modifier_calculator(int attribute_score){
@@ -137,16 +155,18 @@ void party_creator(){
                 printf("\n");
             }
         }
-
+        /* for now, every character will be random
         printf("Do you want this character to be random?\n (1 = yes, 0 = no): ");
         scanf("%d", &randomness_toggle);
+        */
+        randomness_toggle = 1; //for now, every character will be random
         
         if(randomness_toggle==1){
             //randomly assign attributes
             
             players[id].class = &classes[rand()%3];
             players[id].race = &races[rand()%3];
-            players[id].basic_stats.weapon = weapons[rand()%3];
+            players[id].basic_stats.weapon = weapons[rand()%(WEAPONS_QUANTITY-1)+1];
 
             players[id].basic_stats.strength = attributes[rand()%6];
             players[id].basic_stats.dexterity = attributes[rand()%6];
@@ -182,7 +202,7 @@ void party_creator(){
                         break;
                 }
             }
-        }
+        }-
         players[id].basic_stats.health_points = rand()%(players[id].class->health_dice + 1) + players[id].class->health_bonus; //initial health points roll
         players[id].basic_stats.armor_class = 10 + players[id].basic_stats.dexterity; //initial armor class calculation
         players[id].basic_stats.damage = 0;
@@ -203,13 +223,14 @@ void party_creator(){
 
 //created a battle function that takes, as a parameter, a pointer to a Sheet structs
 void battle(){
-    int enemies_quantity, id, roll_counter, damage_dealt, enemies_defeated, type_of_enemy;
+    int enemies_quantity, id, id2, roll_counter, damage_dealt, enemies_defeated, enemy_to_attack, party_members_defeated, monster_type;
     enemies_quantity = rand()%7+1;
+    enemies_defeated = 0;
+    party_members_defeated = 0;
 
     //it will hold the index of the players and enemies in order of initiative
     int iniciative[party_size + enemies_quantity]; 
     
-    enemies_defeated = 0;
     monster_type = rand()%MONSTERS_QUANTITY;
 
     //creates a pointer to pointers, an array of pointers, pointing to a memory space that will hold a 'Monster' struct
@@ -219,6 +240,7 @@ void battle(){
     for(id=0; id<enemies_quantity; id++){
 
         enemies[id] = monsters[monster_type]; //copies the monster stats to the allocated memory
+        enemies[id].basic_stats.weapon = weapons[rand()%(WEAPONS_QUANTITY-1)+1];
 
         for(roll_counter=1; roll_counter<=enemies[id].health_dice_quantity; roll_counter++){ //total health points calculation
             enemies[id].basic_stats.health_points += rand()%enemies[id].health_dice+1;
@@ -226,20 +248,98 @@ void battle(){
         enemies[id].basic_stats.health_points += enemies[id].health_bonus;
         
     }
+    Iniciative iniciatives[party_size + enemies_quantity];
+    Iniciative iniciative_buffer;
     for(id=0; id<party_size + enemies_quantity; id++){
-        iniciative[id] = ; //to be implemented
+        if(id<party_size){
+            iniciatives[id].character_type = PLAYER;
+            iniciatives[id].character_index = id;
+            iniciatives[id].roll = rand()%20 + 1 + modifier_calculator(players[id].basic_stats.dexterity);
+        }else{
+            iniciatives[id].character_type = ENEMY;
+            iniciatives[id].character_index = id - party_size;
+            iniciatives[id].roll = rand()%20 + 1 + modifier_calculator(enemies[id - party_size].basic_stats.dexterity);
+        }
     }
-    printf("A battle has started! There are a horde of %d enemies of type %d!\n", enemies_quantity, monster_type);
-    while(players[id].basic_stats.health_points>0 && enemies_defeated<enemies_quantity){
+    //sorting the iniciatives array by roll value, from highest to lowest
+    for(id=0; id<party_size + enemies_quantity - 1; id++){
+        for(id2=id+1; id2<party_size + enemies_quantity ; id2++){ //id2 is one step ahead of id
+            if(iniciatives[id].roll < iniciatives[id2].roll){ //if the roll is less than the next one, swap them
+                iniciative_buffer = iniciatives[id];
+                iniciatives[id] = iniciatives[id2];
+                iniciatives[id2] = iniciative_buffer;
+            }
+        }
+    }
+    printf("\nA battle has started! There are a horde of %d enemies of type %d!\n", enemies_quantity, monster_type);
+    for(id=0; id<party_size + enemies_quantity; id++){
+        printf("Iniciative order %d: ", id+1);
+        if(iniciatives[id].character_type == PLAYER){
+            printf("Player %d with a roll of %d\n", iniciatives[id].character_index+1, iniciatives[id].roll);
+        }else if(iniciatives[id].character_type == ENEMY){
+            printf("Enemy %d with a roll of %d\n", iniciatives[id].character_index+1, iniciatives[id].roll);
+        } 
+    }
+    while(party_members_defeated<party_size && enemies_defeated<enemies_quantity){
+        printf("\nNew Round!\n");
+        for(id=0; id<party_size + enemies_quantity; id++){
+            damage_dealt = 0;
+            if(iniciatives[id].character_type == PLAYER){
+                if(players[iniciatives[id].character_index].basic_stats.health_points>0){
+                    printf("Player %d's turn!\n", iniciatives[id].character_index+1);
+                    printf("Player %d HP: %d\n", iniciatives[id].character_index+1, players[iniciatives[id].character_index].basic_stats.health_points);
+                    //player's turn
+                    for(roll_counter=1; roll_counter<=players[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity; roll_counter++){ //damage calculation
+                        damage_dealt += rand()%(players[iniciatives[id].character_index].basic_stats.weapon.damage_dice + 1);
+                        if(roll_counter == players[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity){
+                            damage_dealt += players[iniciatives[id].character_index].basic_stats.weapon.damage_bonus;
+                        }
+                    }
+                    printf("Choose an enemy to attack (1 to %d): ", enemies_quantity);
+                    scanf("%d", &enemy_to_attack);
+                    enemy_to_attack -= 1; //to match array index
+                    enemies[enemy_to_attack].basic_stats.health_points -= damage_dealt;
+                    printf("Player %d attacks the enemy for %d damage!\n", iniciatives[id].character_index+1, damage_dealt);
+                    if(enemies[enemy_to_attack].basic_stats.health_points <= 0){
+                        printf("Enemy defeated!\n");
+                        enemies_defeated++;
+                    }
+                }
+            }else if(iniciatives[id].character_type == ENEMY){
+                printf("Enemy %d's turn!\n", iniciatives[id].character_index+1);
+                if(enemies[iniciatives[id].character_index].basic_stats.health_points>0){
+                    //enemy's turn
+                    for(roll_counter=1; roll_counter<=enemies[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity; roll_counter++){ //damage calculation
+                        damage_dealt += rand()%(enemies[iniciatives[id].character_index].basic_stats.weapon.damage_dice + 1);
+                        if(roll_counter == enemies[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity){
+                            damage_dealt += enemies[iniciatives[id].character_index].basic_stats.weapon.damage_bonus;
+                        }
+                    }
+                    players[0].basic_stats.health_points -= damage_dealt; //for now, enemies always attack player 1
+                    printf("Enemy attacks Player 1 for %d damage!\n", damage_dealt);
+                    if(players[0].basic_stats.health_points <= 0){
+                        printf("Player has been defeated!\n");
+                        party_members_defeated++;
+                    }
+                }
+            }
+        }
     }
     //only when the battle ends, free the memory allocated
-    printf("Battle ended with %d Enemies defeated\n", enemies_defeated);
+    printf("\nBattle Over!\n");
+    printf("%d Enemies defeated\n", enemies_defeated);
+    printf("%d Party members defeated\n", party_members_defeated);
+    if(party_members_defeated==party_size){
+        printf("The party has been defeated!\n");
+    }else if(enemies_defeated==enemies_quantity){
+        printf("The party has won the battle!\n");
+    }
     free(enemies);
 }
 
 int main(){
     srand(time(NULL));
     party_creator();
-    //battle();
+    battle();
     return 0;
 }
