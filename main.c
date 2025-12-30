@@ -25,9 +25,8 @@ typedef struct{
     int damage_bonus;
 }Weapon;
 
-enum weapons_enum {TO_BE_SELECTED, SWORD, BOW, STAFF, WEAPONS_QUANTITY};
+enum weapons_enum {SWORD, BOW, STAFF, WEAPONS_QUANTITY};
 Weapon weapons[WEAPONS_QUANTITY]={
-    [TO_BE_SELECTED] = {0, 0, 0},
     [SWORD] = {1, 8, 2},
     [BOW] = {1, 6, 1},
     [STAFF] = {1, 4, 3}
@@ -55,11 +54,11 @@ typedef struct{
     int health_bonus;
 }Class;
 
-enum classes_enum {WARRIOR, ROGUE, MAGE, CLASSES_QUANTITY};
+enum classes_enum {BARBARIAN, ROGUE, SORCERER, CLASSES_QUANTITY};
 Class classes[CLASSES_QUANTITY]={
-    [WARRIOR] = {1, 12, 12},
+    [BARBARIAN] = {1, 12, 12},
     [ROGUE] = {1, 8, 8},  
-    [MAGE] = {1, 6, 6}
+    [SORCERER] = {1, 6, 6}
 };
 
 typedef struct{
@@ -97,13 +96,13 @@ typedef struct{
 enum monsters_enum {SKELETON, ZOMBIE, GOBLIN, MONSTERS_QUANTITY};
 Monster monsters[MONSTERS_QUANTITY]={
     [SKELETON] = {
-            {0, 13, TO_BE_SELECTED, 0, 10, 14, 12, 6, 8, 5},
+            {0, 13, {1, 8, 2}, 0, 10, 14, 12, 6, 8, 5},
         2, 6, 0},
     [ZOMBIE] = {
-            {0, 8, TO_BE_SELECTED, 0, 16, 6, 16, 3, 6, 5},
+            {0, 8, {1, 6, 1}, 0, 16, 6, 16, 3, 6, 5},
         2, 8, 0},
     [GOBLIN] = {
-            {0, 15, TO_BE_SELECTED, 0, 8, 14, 10, 10, 8, 8},
+            {0, 15, {1, 4, 3}, 0, 8, 14, 10, 10, 8, 8},
         1, 6, 0}
 };
 
@@ -223,8 +222,10 @@ void party_creator(){
 
 //created a battle function that takes, as a parameter, a pointer to a Sheet structs
 void battle(){
-    int enemies_quantity, id, id2, roll_counter, damage_dealt, enemies_defeated, enemy_to_attack, party_members_defeated, monster_type;
+    int enemies_quantity, id, id2, roll_counter, damage_dealt, enemies_defeated, enemy_to_attack, player_to_attack, party_members_defeated, monster_type;
+    
     enemies_quantity = rand()%7+1;
+
     enemies_defeated = 0;
     party_members_defeated = 0;
 
@@ -254,11 +255,11 @@ void battle(){
         if(id<party_size){
             iniciatives[id].character_type = PLAYER;
             iniciatives[id].character_index = id;
-            iniciatives[id].roll = rand()%20 + 1 + modifier_calculator(players[id].basic_stats.dexterity);
+            iniciatives[id].roll = (rand()%20 + 1) + modifier_calculator(players[id].basic_stats.dexterity);
         }else{
             iniciatives[id].character_type = ENEMY;
             iniciatives[id].character_index = id - party_size;
-            iniciatives[id].roll = rand()%20 + 1 + modifier_calculator(enemies[id - party_size].basic_stats.dexterity);
+            iniciatives[id].roll = (rand()%20 + 1) + modifier_calculator(enemies[id - party_size].basic_stats.dexterity);
         }
     }
     //sorting the iniciatives array by roll value, from highest to lowest
@@ -285,8 +286,8 @@ void battle(){
         for(id=0; id<party_size + enemies_quantity; id++){
             damage_dealt = 0;
             if(iniciatives[id].character_type == PLAYER){
+                printf("\nPlayer %d's turn!\n", iniciatives[id].character_index+1);
                 if(players[iniciatives[id].character_index].basic_stats.health_points>0){
-                    printf("Player %d's turn!\n", iniciatives[id].character_index+1);
                     printf("Player %d HP: %d\n", iniciatives[id].character_index+1, players[iniciatives[id].character_index].basic_stats.health_points);
                     //player's turn
                     for(roll_counter=1; roll_counter<=players[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity; roll_counter++){ //damage calculation
@@ -295,18 +296,42 @@ void battle(){
                             damage_dealt += players[iniciatives[id].character_index].basic_stats.weapon.damage_bonus;
                         }
                     }
-                    printf("Choose an enemy to attack (1 to %d): ", enemies_quantity);
-                    scanf("%d", &enemy_to_attack);
-                    enemy_to_attack -= 1; //to match array index
-                    enemies[enemy_to_attack].basic_stats.health_points -= damage_dealt;
-                    printf("Player %d attacks the enemy for %d damage!\n", iniciatives[id].character_index+1, damage_dealt);
-                    if(enemies[enemy_to_attack].basic_stats.health_points <= 0){
-                        printf("Enemy defeated!\n");
-                        enemies_defeated++;
+                    if(0){
+                        printf("Choose an enemy to attack (1 to %d): ", enemies_quantity);
+                        while(1){
+                            scanf("%d", &enemy_to_attack);
+                            enemy_to_attack -= 1; //to match array index
+                            if(enemies[enemy_to_attack].basic_stats.health_points<=0){
+                                printf("Enemy %d is already defeated! Choose another enemy.\n", enemy_to_attack+1);
+                            }else{
+                                break;
+                            }
+                        }
+                    }else{
+                        enemy_to_attack = rand()%enemies_quantity;
+                        if(enemies_defeated==enemies_quantity){
+                            printf("All enemies have been defeated! Players win!\n");
+                        }else{
+                            while(enemies[enemy_to_attack].basic_stats.health_points<=0){
+                                printf("Enemy %d is already defeated! Choosing another enemy.\n", enemy_to_attack+1);
+                                enemy_to_attack++;
+                                if(enemy_to_attack>=enemies_quantity){
+                                    enemy_to_attack = 0;
+                                }
+                            }
+                            enemies[enemy_to_attack].basic_stats.health_points -= damage_dealt;
+                            printf("Player %d attacks the enemy for %d damage!\n", iniciatives[id].character_index+1, damage_dealt);
+                            if(enemies[enemy_to_attack].basic_stats.health_points <= 0){
+                                printf("Enemy defeated!\n");
+                                enemies_defeated++;
+                            }
+                        }
                     }
+                }else{
+                    printf("Player %d is defeated and cannot act this turn.\n", iniciatives[id].character_index+1);
                 }
             }else if(iniciatives[id].character_type == ENEMY){
-                printf("Enemy %d's turn!\n", iniciatives[id].character_index+1);
+                printf("\nEnemy %d's turn!\n", iniciatives[id].character_index+1);
                 if(enemies[iniciatives[id].character_index].basic_stats.health_points>0){
                     //enemy's turn
                     for(roll_counter=1; roll_counter<=enemies[iniciatives[id].character_index].basic_stats.weapon.damage_dice_quantity; roll_counter++){ //damage calculation
@@ -315,11 +340,24 @@ void battle(){
                             damage_dealt += enemies[iniciatives[id].character_index].basic_stats.weapon.damage_bonus;
                         }
                     }
-                    players[0].basic_stats.health_points -= damage_dealt; //for now, enemies always attack player 1
-                    printf("Enemy attacks Player 1 for %d damage!\n", damage_dealt);
-                    if(players[0].basic_stats.health_points <= 0){
-                        printf("Player has been defeated!\n");
-                        party_members_defeated++;
+                    player_to_attack = rand()%party_size;
+                    if(party_members_defeated==party_size){
+                        printf("All players have been defeated! Enemies win!\n");
+                    }else{
+                        while(players[player_to_attack].basic_stats.health_points<=0){
+                            printf("Player %d is already defeated! Choosing another player.\n", player_to_attack+1);
+                            player_to_attack++;
+                            if(player_to_attack>=party_size){
+                                player_to_attack = 0;
+                            }
+                        }
+                        players[player_to_attack].basic_stats.health_points -= damage_dealt;
+                        printf("Enemy attacks Player %d for %d damage!\n", player_to_attack+1, damage_dealt);
+                        if(players[player_to_attack].basic_stats.health_points <= 0){
+                            printf("Player %d has been defeated!\n", player_to_attack+1);
+                            party_members_defeated++;
+                            printf("%d party members defeated so far.\n", party_members_defeated);
+                        }
                     }
                 }
             }
