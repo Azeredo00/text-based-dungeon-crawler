@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <time.h>
 
-int party_size;
+int party_size, map_h_size, map_v_size;
 
 enum directions_enum {NORTH, EAST, SOUTH, WEST, DIRECTIONS_QUANTITY};
 typedef struct{
-    int adjacent_rooms[DIRECTIONS_QUANTITY]; //array positions are, respectively: north, east, south, west
-    int enemies_inside;
-    int money_pile;
+    int has_room;
+    int horizontal_id, vertical_id;
     int has_enemy;
+    int money_pile;
 }Room;
 
 enum character_types_enum {PLAYER, ENEMY, CHARACTER_TYPES_QUANTITY};
@@ -64,8 +64,8 @@ Class classes[CLASSES_QUANTITY]={
 typedef struct{
     int health_points;
     int armor_class;
-    // 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67
     Weapon weapon;
+    // 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67
     int damage;
     int strength;
     int dexterity;
@@ -376,8 +376,85 @@ void battle(){
     free(enemies);
 }
 
+int bigger(int x, int y){
+    int biggest;
+    if(x>y){
+        biggest = x;
+    }else{
+        biggest = y;
+    }
+    return biggest;
+}
+
+void map_generator(){
+    //h and v stand for horizontal and vertical
+    int room_h_id, room_v_id;
+    int minimum_size, maximum_size;
+    int limiter;
+    int possible_rooms;
+
+    limiter = 0;
+
+
+    maximum_size = 10;
+    minimum_size = 5;
+
+    map_h_size = (rand()%(maximum_size - minimum_size + 1)) + minimum_size;
+    map_v_size = (rand()%(maximum_size - minimum_size + 1)) + minimum_size;
+    if(map_h_size % 2 == 0){
+        map_h_size += 1;
+    }
+    if(map_v_size % 2 == 0){
+        map_v_size += 1;
+    }
+    Room map[map_h_size][map_v_size];
+
+    /*
+    map[horizontal_array_id][vertical_array_id].horizontal_id = horizontal_array_id - ((map_horizontal_size-1)/2);
+    map[horizontal_array_id][vertical_array_id].vertical_id = vertical_array_id - ((map_horizontal_size-1)/2);
+    */
+
+    room_h_id = 0;
+    room_v_id = 0;
+    limiter = 0;
+    for(possible_rooms = 1; possible_rooms<=(map_h_size*map_v_size);){
+        printf("\nin room %d\n", possible_rooms);
+        printf("array grid size: %d %d\n", map_h_size, map_v_size);
+        printf("%d %d %d\n", room_h_id, room_v_id, limiter);
+        printf("array grid acessing: %d %d\n", room_h_id + 1 + (map_h_size-1)/2, room_v_id + 1 + (map_v_size-1)/2 );
+        map[ room_h_id + 1 + (map_h_size-1)/2 ][ room_v_id + 1 + (map_v_size-1)/2 ].has_room = rand()%2;
+        if(room_h_id < limiter && room_v_id == -limiter ){ //on the "ceiling" going from left to right until the last corner
+            printf("going right\n");
+            room_h_id++;
+        }else if(room_h_id == limiter && room_v_id < limiter){ //on the "left wall" going down until the last corner
+            printf("going down\n");
+            room_v_id++; 
+        }else if(room_h_id > -limiter && room_v_id == limiter){ //on the "floor" going from right to left until the last corner
+            printf("going left\n");
+            room_h_id--;
+        }else if(room_h_id == -limiter && room_v_id > -limiter){ //on the "left wall" going up until the last corner
+            printf("going up\n");
+            room_v_id--;
+        }
+        printf("%d %d %d\n", room_h_id, room_v_id, limiter);
+        if(room_v_id == -limiter && room_h_id == -limiter && limiter<bigger(map_h_size, map_v_size)){ //if it ends a full lap
+            printf("ended a lap\n");
+            limiter++;
+            room_v_id--;
+            room_h_id--;
+        }
+        if(room_v_id<=map_v_size && room_h_id<=map_h_size){ //limits the area where there can be rooms, it needs to do this condition since the entire true map is a square grid
+            possible_rooms++;
+        }
+        printf("next coordinates: %d %d %d\n", room_h_id, room_v_id, limiter);
+    }
+    possible_rooms--; //since the code stops when it is in one more room than necessary    
+    printf("%d %d\n", map_h_size*map_v_size, possible_rooms);
+}
+
 int main(){
     srand(time(NULL));
+    map_generator();
     party_creator();
     battle();
     return 0;
