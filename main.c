@@ -64,6 +64,7 @@ Class classes[CLASSES_QUANTITY]={
 typedef struct{
     int health_points;
     int armor_class;
+    // 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67 67
     Weapon weapon;
     int damage;
     int strength;
