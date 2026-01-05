@@ -389,12 +389,12 @@ int bigger(int x, int y){
 void map_generator(){
     //h and v stand for horizontal and vertical
     int room_h_id, room_v_id;
+    int array_h_id, array_v_id;
     int minimum_size, maximum_size;
     int limiter;
     int possible_rooms;
 
     limiter = 0;
-
 
     maximum_size = 10;
     minimum_size = 5;
@@ -418,38 +418,59 @@ void map_generator(){
     room_v_id = 0;
     limiter = 0;
     for(possible_rooms = 1; possible_rooms<=(map_h_size*map_v_size);){
-        printf("\nin room %d\n", possible_rooms);
-        printf("array grid size: %d %d\n", map_h_size, map_v_size);
-        printf("%d %d %d\n", room_h_id, room_v_id, limiter);
-        printf("array grid acessing: %d %d\n", room_h_id + 1 + (map_h_size-1)/2, room_v_id + 1 + (map_v_size-1)/2 );
-        map[ room_h_id + 1 + (map_h_size-1)/2 ][ room_v_id + 1 + (map_v_size-1)/2 ].has_room = rand()%2;
-        if(room_h_id < limiter && room_v_id == -limiter ){ //on the "ceiling" going from left to right until the last corner
-            printf("going right\n");
-            room_h_id++;
-        }else if(room_h_id == limiter && room_v_id < limiter){ //on the "left wall" going down until the last corner
-            printf("going down\n");
-            room_v_id++; 
-        }else if(room_h_id > -limiter && room_v_id == limiter){ //on the "floor" going from right to left until the last corner
-            printf("going left\n");
-            room_h_id--;
-        }else if(room_h_id == -limiter && room_v_id > -limiter){ //on the "left wall" going up until the last corner
-            printf("going up\n");
-            room_v_id--;
+        array_h_id = room_h_id + (map_h_size-1)/2;
+        array_v_id = room_v_id + (map_v_size-1)/2;
+        printf("\n--- in room %d ---\n", possible_rooms);
+        printf("Limiter: %d\n", limiter);
+        printf("map grid size: %d %d\n", map_h_size, map_v_size);
+        printf("room id acessing: %d %d\n", room_h_id, room_v_id);
+        printf("array id acessing: %d %d\n", array_h_id, array_v_id);
+        printf("\na room here is ");
+        if(array_h_id<map_h_size && array_h_id >= 0 && array_v_id<map_v_size && array_v_id >= 0){ //limits the area where there can be rooms, it needs to do this condition since the entire true map is a square grid
+            printf("possible\n");
+            printf("room id acessing: %d %d\n\n", room_h_id, room_v_id);
+            if(room_h_id == 0 && room_v_id == 0){
+                map[array_h_id][array_v_id].has_room = 1;
+            }else{
+                map[array_h_id][array_v_id].has_room = rand()%2;
+            }
+
+            possible_rooms++;
+        }else{
+            printf("not possible\n\n");
         }
-        printf("%d %d %d\n", room_h_id, room_v_id, limiter);
         if(room_v_id == -limiter && room_h_id == -limiter && limiter<bigger(map_h_size, map_v_size)){ //if it ends a full lap
             printf("ended a lap\n");
             limiter++;
             room_v_id--;
-            room_h_id--;
+            printf("next room id: %d %d\n", room_h_id, room_v_id);
+        }else{
+
+            if(room_h_id < limiter && room_v_id == -limiter ){ //on the "ceiling" going from left to right until the last corner
+                printf("going right\n");
+                room_h_id++;
+            }else if(room_h_id == limiter && room_v_id < limiter){ //on the "left wall" going down until the last corner
+                printf("going down\n");
+                room_v_id++; 
+            }else if(room_h_id > -limiter && room_v_id == limiter){ //on the "floor" going from right to left until the last corner
+                printf("going left\n");
+                room_h_id--;
+            }else if(room_h_id == -limiter && room_v_id > -limiter){ //on the "left wall" going up until the last corner
+                printf("going up\n");
+                room_v_id--;
+            }
+
         }
-        if(room_v_id<=map_v_size && room_h_id<=map_h_size){ //limits the area where there can be rooms, it needs to do this condition since the entire true map is a square grid
-            possible_rooms++;
-        }
-        printf("next coordinates: %d %d %d\n", room_h_id, room_v_id, limiter);
     }
-    possible_rooms--; //since the code stops when it is in one more room than necessary    
-    printf("%d %d\n", map_h_size*map_v_size, possible_rooms);
+    possible_rooms--; //since the code stops when it is in one more room than necessary
+    printf("calculated map size: %d %d\n\n", map_h_size*map_v_size, possible_rooms);
+    for(array_v_id = 0; array_v_id < map_v_size; array_v_id++){
+        for(array_h_id = 0; array_h_id < map_h_size; array_h_id++){
+            
+            printf("%i ", map[array_h_id][array_v_id].has_room);
+        }
+        printf("\n");
+    }
 }
 
 int main(){
