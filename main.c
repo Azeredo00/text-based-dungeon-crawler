@@ -7,7 +7,7 @@ int party_size, map_h_size, map_v_size;
 enum directions_enum {NORTH, SOUTH, EAST, WEST, DIRECTIONS_QUANTITY};
 typedef struct{
     int adjascent_rooms[DIRECTIONS_QUANTITY];
-    int has_room;
+    char has_room;
     int horizontal_id, vertical_id;
     int has_enemy;
     int money_pile;
@@ -393,7 +393,7 @@ void map_generator(){
     int room_h_id, room_v_id;
     int end_room_h_id, end_room_v_id;
     int h_modifier, v_modifier;
-    int minimum_size, maximum_size, direction;
+    int minimum_size, maximum_size;
     float angular_coeficient;
 
     maximum_size = 15;
@@ -411,19 +411,20 @@ void map_generator(){
 
     for(array_v_id = 0; array_v_id < map_v_size; array_v_id++){ //sets everything zero
         for(array_h_id = 0; array_h_id < map_h_size; array_h_id++){
-            map[array_h_id][array_v_id].has_room = 0;
+            map[array_h_id][array_v_id].has_room = '.';
         }
     }
     room_h_id = 0; //middle room
     room_v_id = 0; //middle room
     array_h_id = room_h_id + (map_h_size-1)/2;
     array_v_id = room_v_id + (map_v_size-1)/2;
-    map[array_h_id][array_v_id].has_room = 1; //room at the middle exists
+    map[array_h_id][array_v_id].has_room = '1'; //room at the middle exists
+    map[array_h_id][array_v_id].horizontal_id = room_h_id;
+    map[array_h_id][array_v_id].vertical_id = room_v_id;
     
     printf("map size: %d x %d\n", map_h_size, map_v_size);
     printf("last room at ");
-    direction = 1;
-    switch(direction){
+    switch(rand()%4){
         case 0: //NORTH, up
             printf("north, ");
             end_room_h_id = (rand()%map_h_size)-(map_h_size-1)/2;
@@ -441,7 +442,7 @@ void map_generator(){
             break;
         case 3: //WEST, left
             printf("west, ");
-            end_room_h_id = -(map_v_size-1)/2;
+            end_room_h_id = -(map_h_size-1)/2;
             end_room_v_id = (rand()%map_v_size)-(map_v_size-1)/2;
             break;
     }
@@ -464,19 +465,28 @@ void map_generator(){
         angular_coeficient = (float)(end_room_v_id-room_v_id)/(float)(end_room_h_id-room_h_id);
     }
     printf("angular_coeficient: %f\n", angular_coeficient);
+    printf("room acessing: %d;%d\n", room_h_id, room_v_id);
     printf("array acessing: %d;%d\n", array_h_id, array_v_id);
 
     while((room_h_id != end_room_h_id) || (room_v_id != end_room_v_id)){ //when it enters in this while, the room ids are at the middle and so are the array ids
 
         printf("\n-----------------------------------------\n");
 
+            printf("\nmap size: %dx%d\n", map_h_size, map_v_size);
+            printf("end room coordinates: %d;%d\n",end_room_h_id, end_room_v_id);
+
         if(angular_coeficient!=0){
             printf("\nthe angular_coeficient is not 0\n");
 
             room_h_id+=h_modifier;
             array_h_id = room_h_id + (map_h_size-1)/2;
-            map[array_h_id][array_v_id].has_room = 1;
+
+            map[array_h_id][array_v_id].has_room = '1';
+            map[array_h_id][array_v_id].horizontal_id = room_h_id;
+            map[array_h_id][array_v_id].vertical_id = room_v_id;
+
             printf("\nmoving the room_h_id: %d\n", room_h_id);
+            printf("room acessing: %d;%d\n", room_h_id, room_v_id);
             printf("array acessing: %d;%d\n", array_h_id, array_v_id);
             printf("angular_coeficient * room_h_id: %f\n", angular_coeficient*(float)room_h_id);
 
@@ -484,14 +494,15 @@ void map_generator(){
                 room_v_id+=v_modifier;
                 array_v_id = (map_v_size-1)/2 - room_v_id;
                 printf("\nmoving the room_v_id: %d\n", room_v_id);
+                printf("room acessing: %d;%d\n", room_h_id, room_v_id);
                 printf("array acessing: %d;%d\n", array_h_id, array_v_id);
-                map[array_h_id][array_v_id].has_room = 1;
 
-                //usleep(1000*1000*30);
+                map[array_h_id][array_v_id].has_room = '1';
+                map[array_h_id][array_v_id].horizontal_id = room_h_id;
+                map[array_h_id][array_v_id].vertical_id = room_v_id;
             }
         }else{ //if angular_coeficient is 0, we need to check if it is totally horizontal or vertical
             printf("\nthe angular_coeficient is 0\n");
-
             if(abs(end_room_v_id) == (map_v_size-1)/2){ //if the end room is vertically at the max
 
                 room_v_id+=v_modifier;
@@ -506,20 +517,22 @@ void map_generator(){
 
             array_h_id = room_h_id + (map_h_size-1)/2;
             array_v_id = (map_v_size-1)/2 - room_v_id;
-            map[array_h_id][array_v_id].has_room = 1;
-            printf("room acessing: %d;%d\n", room_h_id, room_v_id);
+            map[array_h_id][array_v_id].has_room = '1';
+            map[array_h_id][array_v_id].horizontal_id = room_h_id;
+            map[array_h_id][array_v_id].vertical_id = room_v_id;
+            printf("\nroom acessing: %d;%d\n", room_h_id, room_v_id);
             printf("array acessing: %d;%d\n", array_h_id, array_v_id);
-
         }
-
-        //usleep(1000*1000*30);
+        while(array_h_id<0 || array_h_id >map_h_size || array_v_id<0 || array_v_id>map_v_size){
+        
+        }
     }
 
     printf("\nmap made\n\n");
 
     for(array_v_id = 0; array_v_id < map_v_size; array_v_id++){
         for(array_h_id = 0; array_h_id < map_h_size; array_h_id++){
-            printf("%i ", map[array_h_id][array_v_id].has_room);
+            printf("%c ", map[array_h_id][array_v_id].has_room);
         }
         printf("\n");
     }
