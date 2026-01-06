@@ -4,8 +4,9 @@
 
 int party_size, map_h_size, map_v_size;
 
-enum directions_enum {NORTH, EAST, SOUTH, WEST, DIRECTIONS_QUANTITY};
+enum directions_enum {NORTH, SOUTH, EAST, WEST, DIRECTIONS_QUANTITY};
 typedef struct{
+    int adjascent_rooms[DIRECTIONS_QUANTITY];
     int has_room;
     int horizontal_id, vertical_id;
     int has_enemy;
@@ -388,17 +389,15 @@ int bigger(int x, int y){
 
 void map_generator(){
     //h and v stand for horizontal and vertical
-    int room_h_id, room_v_id;
     int array_h_id, array_v_id;
-    int minimum_size, maximum_size;
-    int limiter;
-    int possible_rooms;
-    int room_roll, room_chance;
+    int room_h_id, room_v_id;
+    int end_room_h_id, end_room_v_id;
+    int h_modifier, v_modifier;
+    int minimum_size, maximum_size, direction;
+    float angular_coeficient;
 
-    limiter = 0;
-
-    maximum_size = 7;
-    minimum_size = 3;
+    maximum_size = 15;
+    minimum_size = 5;
 
     map_h_size = (rand()%(maximum_size - minimum_size + 1)) + minimum_size;
     map_v_size = (rand()%(maximum_size - minimum_size + 1)) + minimum_size;
@@ -410,120 +409,116 @@ void map_generator(){
     }
     Room map[map_h_size][map_v_size];
 
-    /*
-    map[horizontal_array_id][vertical_array_id].horizontal_id = horizontal_array_id - ((map_horizontal_size-1)/2);
-    map[horizontal_array_id][vertical_array_id].vertical_id = vertical_array_id - ((map_horizontal_size-1)/2);
-    */
-
-    room_h_id = 0;
-    room_v_id = 0;
-    limiter = 0;
-    room_chance = 0;
-    for(possible_rooms = 1; possible_rooms<=(map_h_size*map_v_size);){
-        array_h_id = room_h_id + (map_h_size-1)/2;
-        array_v_id = room_v_id + (map_v_size-1)/2;
-        printf("\n--- in room %d ---\n", possible_rooms);
-        printf("Limiter: %d\n", limiter);
-        printf("map grid size: %d %d\n", map_h_size, map_v_size);
-        printf("room id acessing: %d %d\n", room_h_id, room_v_id);
-        printf("array id acessing: %d %d\n", array_h_id, array_v_id);
-        printf("\na room here is ");
-        if(array_h_id<map_h_size && array_h_id >= 0 && array_v_id<map_v_size && array_v_id >= 0){ //limits the area where there can be rooms, it needs to do this condition since the entire true map is a square grid
-            printf("possible\n");
-            room_roll = (rand()%100)+1;
-            printf("room chance: %d\n", room_chance);
-            printf("room roll: %d\n", room_roll);
-            if(room_h_id == 0 && room_v_id == 0){
-                map[array_h_id][array_v_id].has_room = 1;
-            }else if(room_roll <= room_chance){
-                printf("room created\n");
-                map[array_h_id][array_v_id].has_room = 1;
-            }else{
-                printf("room not created\n");
-                map[array_h_id][array_v_id].has_room = 0;
-            }
-
-            possible_rooms++;
-        }else{
-            printf("not possible\n\n");
+    for(array_v_id = 0; array_v_id < map_v_size; array_v_id++){ //sets everything zero
+        for(array_h_id = 0; array_h_id < map_h_size; array_h_id++){
+            map[array_h_id][array_v_id].has_room = 0;
         }
-
-        room_chance = 0; //clearing the chances
-
-        if(room_v_id == -limiter && room_h_id == -limiter && limiter<bigger(map_h_size, map_v_size)){ //if it ends a full lap
-            printf("ended a lap\n");
-            limiter++;
-            room_v_id--;
-            printf("next room id: %d %d\n", room_h_id, room_v_id);
-        }else{
-            if(room_h_id < limiter && room_v_id == -limiter ){ //on the "ceiling" going from left to right until the last corner
-                printf("going right\n");
-                printf("array id to acess: %d %d\n", array_h_id+1, array_v_id+1);
-                room_h_id++; //will move the room/array id one to the right
-
-                printf("the room at array id %d %d ", array_h_id+1, array_v_id+1);
-                if(map[array_h_id+1][array_v_id+1].has_room == 1){ //if the id below has a room
-                    room_chance=+40;
-                    printf("has a room, chances for the next room to exist up by +%d\n", room_chance);
-                }else{
-                    printf("doesn't have a room\n");
-                }
-
-            }else if(room_h_id == limiter && room_v_id < limiter){ //on the "left wall" going down until the last corner
-                printf("going down\n");
-                printf("array id to acess: %d %d\n", array_h_id-1, array_v_id+1);
-                room_v_id++; 
-
-                printf("the room at array id %d %d ", array_h_id-1, array_v_id+1);
-                if(map[array_h_id-1][array_v_id+1].has_room == 1){ //if the id to the left has a room
-                    room_chance=+40;
-                    printf("has a room, chances for the next room to exist up by +%d\n", room_chance);
-                }else{
-                    printf("doesn't have a room\n");
-                }
-
-            }else if(room_h_id > -limiter && room_v_id == limiter){ //on the "floor" going from right to left until the last corner
-                printf("going left\n");
-                printf("array id to acess: %d %d\n", array_h_id-1, array_v_id-1);
-                room_h_id--;
-
-                printf("the room at array id %d %d ", array_h_id-1, array_v_id-1);
-                if(map[array_h_id-1][array_v_id-1].has_room == 1){ //if the id above has a room
-                    room_chance=+40;
-                    printf("has a room, chances for the next room to exist up by +%d\n", room_chance);
-                }else{
-                    printf("doesn't have a room\n");
-                }
-
-            }else if(room_h_id == -limiter && room_v_id > -limiter){ //on the "left wall" going up until the last corner
-                printf("going up\n");
-                printf("array id to acess: %d %d\n", array_h_id+1, array_v_id-1);
-                room_v_id--;
-
-                printf("the room at array id %d %d ", array_h_id+1, array_v_id-1);
-                if(map[array_h_id+1][array_v_id-1].has_room == 1){ //if the id to the right has a room
-                    room_chance=+40;
-                printf("has a room, chances for the next room to exist up by +%d\n", room_chance);
-                }else{
-                    printf("doesn't have a room\n");
-                }
-
-            }
-        }
-        printf("the actual room at array id %d %d ", array_h_id, array_v_id);
-        if(map[array_h_id][array_v_id].has_room == 1){
-            room_chance=+60;
-            printf("has a room, chances for the next room to exist up by +%d\n", room_chance);
-        }else{
-            printf("doesn't have a room\n");
-        }
-        printf("\nchance of next room: %d\n", room_chance);
     }
-    possible_rooms--; //since the code stops when it is in one more room than necessary
-    printf("calculated map size: %d %d\n\n", map_h_size*map_v_size, possible_rooms);
+    room_h_id = 0; //middle room
+    room_v_id = 0; //middle room
+    array_h_id = room_h_id + (map_h_size-1)/2;
+    array_v_id = room_v_id + (map_v_size-1)/2;
+    map[array_h_id][array_v_id].has_room = 1; //room at the middle exists
+    
+    printf("map size: %d x %d\n", map_h_size, map_v_size);
+    printf("last room at ");
+    direction = rand()%3;
+    switch(direction){
+        case 0: //NORTH, up
+            printf("north, ");
+            end_room_h_id = (rand()%map_h_size)-(map_h_size-1)/2;
+            end_room_v_id = (map_v_size-1)/2;            
+            break;
+        case 1: //SOUTH, down
+            printf("south, ");
+            end_room_h_id = (rand()%map_h_size)-(map_h_size-1)/2;
+            end_room_v_id = map_v_size-1-(map_v_size-1)/2;
+            break;
+        case 2: //EAST, right
+            printf("east, ");
+            end_room_h_id = map_h_size-1-(map_h_size-1)/2;
+            end_room_v_id = (rand()%map_v_size)-(map_v_size-1)/2;
+            break;
+        case 3: //WEST, left
+            printf("west, ");
+            end_room_h_id = -(map_v_size-1)/2;
+            end_room_v_id = (rand()%map_v_size)-(map_v_size-1)/2;
+            break;
+    }
+
+    if(end_room_h_id>0){
+        h_modifier = 1;
+    }else{
+        h_modifier = -1;
+    }
+    if(end_room_v_id>0){
+        v_modifier = 1;
+    }else{
+        v_modifier = -1;
+    }
+
+    printf("coordinates: %d;%d\n", end_room_h_id, end_room_v_id);
+    if(end_room_h_id-room_h_id == 0){ //if it the horizontal distance is zero
+        angular_coeficient = 0; //the corridor is totally vertical
+    }else{
+        angular_coeficient = (float)(end_room_v_id-room_v_id)/(float)(end_room_h_id-room_h_id);
+    }
+    printf("angular_coeficient: %f\n", angular_coeficient);
+    printf("array acessing: %d;%d\n", array_h_id, array_v_id);
+
+    while((room_h_id != end_room_h_id) || (room_v_id != end_room_v_id)){ //when it enters in this while, the room ids are at the middle and so are the array ids
+
+        printf("\n-----------------------------------------\n");
+
+        if(angular_coeficient!=0){
+            printf("\nthe angular_coeficient is not 0\n");
+
+            room_h_id+=h_modifier;
+            array_h_id = room_h_id + (map_h_size-1)/2;
+            map[array_h_id][array_v_id].has_room = 1;
+            printf("\nmoving the room_h_id: %d\n", room_h_id);
+            printf("array acessing: %d;%d\n", array_h_id, array_v_id);
+            printf("angular_coeficient * room_h_id: %f\n", angular_coeficient*(float)room_h_id);
+
+            while( room_v_id != (int)(angular_coeficient*room_h_id) ){
+                room_v_id+=v_modifier;
+                array_v_id = room_v_id + (map_v_size-1)/2;
+                printf("\nmoving the room_v_id: %d\n", room_v_id);
+                printf("array acessing: %d;%d\n", array_h_id, array_v_id);
+                map[array_h_id][array_v_id].has_room = 1;
+
+                //usleep(1000*1000*30);
+            }
+        }else{ //if angular_coeficient is 0, we need to check if it is totally horizontal or vertical
+            printf("\nthe angular_coeficient is 0\n");
+
+            if(abs(end_room_v_id) == (map_v_size-1)/2){ //if the end room is vertically at the max
+
+                room_v_id+=v_modifier;
+                printf("\nmoving the room_v_id: %d\n", room_v_id);
+
+            }else if(abs(end_room_h_id) == (map_h_size-1)/2){ //if the end room is horizontally at the max
+
+                room_h_id+=h_modifier;
+                printf("\nmoving the room_h_id: %d\n", room_h_id);
+
+            }
+
+            array_h_id = room_h_id + (map_h_size-1)/2;
+            array_v_id = room_v_id + (map_v_size-1)/2;
+            map[array_h_id][array_v_id].has_room = 1;
+            printf("room acessing: %d;%d\n", room_h_id, room_v_id);
+            printf("array acessing: %d;%d\n", array_h_id, array_v_id);
+
+        }
+
+        //usleep(1000*1000*30);
+    }
+
+    printf("\nmap made\n\n");
+
     for(array_v_id = 0; array_v_id < map_v_size; array_v_id++){
         for(array_h_id = 0; array_h_id < map_h_size; array_h_id++){
-            
             printf("%i ", map[array_h_id][array_v_id].has_room);
         }
         printf("\n");
