@@ -422,7 +422,7 @@ void map_generator(){
     
     printf("map size: %d x %d\n", map_h_size, map_v_size);
     printf("last room at ");
-    direction = rand()%3;
+    direction = 1;
     switch(direction){
         case 0: //NORTH, up
             printf("north, ");
@@ -432,7 +432,7 @@ void map_generator(){
         case 1: //SOUTH, down
             printf("south, ");
             end_room_h_id = (rand()%map_h_size)-(map_h_size-1)/2;
-            end_room_v_id = map_v_size-1-(map_v_size-1)/2;
+            end_room_v_id = -map_v_size+1+(map_v_size-1)/2;
             break;
         case 2: //EAST, right
             printf("east, ");
@@ -482,7 +482,7 @@ void map_generator(){
 
             while( room_v_id != (int)(angular_coeficient*room_h_id) ){
                 room_v_id+=v_modifier;
-                array_v_id = room_v_id + (map_v_size-1)/2;
+                array_v_id = (map_v_size-1)/2 - room_v_id;
                 printf("\nmoving the room_v_id: %d\n", room_v_id);
                 printf("array acessing: %d;%d\n", array_h_id, array_v_id);
                 map[array_h_id][array_v_id].has_room = 1;
@@ -505,7 +505,7 @@ void map_generator(){
             }
 
             array_h_id = room_h_id + (map_h_size-1)/2;
-            array_v_id = room_v_id + (map_v_size-1)/2;
+            array_v_id = (map_v_size-1)/2 - room_v_id;
             map[array_h_id][array_v_id].has_room = 1;
             printf("room acessing: %d;%d\n", room_h_id, room_v_id);
             printf("array acessing: %d;%d\n", array_h_id, array_v_id);
